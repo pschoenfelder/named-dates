@@ -19,12 +19,12 @@ def day_of_nth_weekday(year, month, weekday, nth=1):
     :raises NoNthWeekdayException: If no nth weekday exists for this month
      and year.
     """
-    first_of_month_weekday = date(year, month, 1).day
+    first_of_month_weekday = date(year, month, 1).weekday()
     nth_offset = 7 * (nth-1)
     if weekday < first_of_month_weekday:
         nth_offset += 7
 
-    day = (weekday - first_of_month_weekday - 1) + nth_offset
+    day = (weekday - first_of_month_weekday + 1) + nth_offset
     if nth < 1 or day > calendar.monthrange(year, month)[1]:
         raise NoNthWeekdayException()
 
