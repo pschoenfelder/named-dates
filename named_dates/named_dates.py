@@ -33,7 +33,7 @@ def day_of_nth_weekday(year, month, weekday, nth=1):
     return day
 
 
-def create_named_date(name, month, day, nth=None):
+def register_named_date(name, month, day, nth=None):
     """Register a named date.
 
     :param name: The name of the date. Must be unique within all named dates.
