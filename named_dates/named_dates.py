@@ -6,6 +6,7 @@ from dateutil.easter import easter
 _named_dates = {}
 _named_date_groups = {}
 
+
 class NamedDateError(Exception):
     pass
 
@@ -117,8 +118,6 @@ def in_named_date_set(date, group):
             return True
 
     return False
-
-
 
 # def add_named_dates_to_group(named_dates, group):
 #     global _named_date_groups

@@ -2,7 +2,7 @@ import pytest
 
 from datetime import date
 from named_dates import register_named_date, make_named_date_set,\
-    in_named_date_set  #, add_named_date_to_group
+    in_named_date_set
 
 
 def test_named_date_groups():

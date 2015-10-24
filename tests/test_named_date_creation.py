@@ -37,6 +37,7 @@ def test_non_existing_named_date():
     clear_named_dates()  # Just to be sure nothing exists.
     assert not is_named_date(date(2000, 1, 1), "NotANamedDate")
 
+
 def test_creation_via_custom_function():
     register_named_date(
         "CustomDate",
