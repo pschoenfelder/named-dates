@@ -22,7 +22,7 @@ def test_named_date_creation():
     assert not is_named_date(date(2016, 11, 24), "MyDateHard")
 
     register_named_date("SpecialDate", 9, 25)
-    assert is_named_date(date(1939, 9, 25), "SpecialDate")
+    assert is_named_date(date(1937, 9, 25), "SpecialDate")
     assert is_named_date(date(2014, 9, 25), "SpecialDate")
     assert not is_named_date(date(2014, 12, 17), "SpecialDate")
 

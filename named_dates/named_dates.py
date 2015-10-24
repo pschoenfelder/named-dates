@@ -2,7 +2,7 @@ import calendar
 import datetime
 
 _named_dates = {}
-
+_named_date_groups = {}
 
 class NoNthWeekdayException(Exception):
     pass
@@ -64,3 +64,35 @@ def is_named_date(date, name):
 
 def clear_named_dates():
     _named_dates.clear()
+
+
+def make_named_date_group(group, date_names=None):
+    """
+
+    :param group: The group name
+    :param date_names: A list of named date names to add
+    """
+    global _named_date_groups
+    _named_date_groups[group] = list(date_names) if date_names else []
+
+
+def in_named_date_group(date, group):
+    for date_name in _named_date_groups.get(group, []):
+        if _named_dates[date_name](date):
+            return True
+
+    return False
+
+
+# def add_named_dates_to_group(named_dates, group):
+#     global _named_date_groups
+#     named_dates = list(named_dates)
+#
+#     named_dates.extend(_named_date_groups.get(group, []))
+#     _named_date_groups[group] = named_dates
+
+
+# def get_named_dates_in_group(group):
+#     return _named_date_groups.get(group, [])
+
+
