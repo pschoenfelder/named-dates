@@ -27,7 +27,7 @@ register_named_date("Washington's Birthday", 2, 0, nth=3)
 register_named_date("President's Day", 2, 0, nth=3)
 
 # TODO: Good Friday - that could be tricky.
-# TODO: Memorial day - last monday of may
+register_named_date("Memorial Day", 5, 0, nth=1, from_end=True)
 register_named_date("Independence Day", 7, 4)
 register_named_date("Labor Day", 9, 0, nth=1)
 register_named_date("Thanksgiving Day", 11, 3, nth=4)

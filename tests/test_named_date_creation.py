@@ -36,3 +36,21 @@ def test_named_dates_persist():
 def test_non_existing_named_date():
     clear_named_dates()  # Just to be sure nothing exists.
     assert not is_named_date(date(2000, 1, 1), "NotANamedDate")
+
+def test_creation_via_custom_function():
+    register_named_date(
+        "CustomDate",
+        custom_func=lambda x: x.day == 25)
+    assert is_named_date(date(2015, 10, 25), "CustomDate")
+    assert is_named_date(date(1999, 12, 25), "CustomDate")
+    assert not is_named_date(date(2015, 10, 26), "CustomDate")
+
+    def custom_date_function(the_date):
+        return the_date.month == 7
+
+    register_named_date(
+        "CustomDate2",
+        custom_func=custom_date_function)
+    assert is_named_date(date(2015, 7, 25), "CustomDate2")
+    assert is_named_date(date(1999, 7, 25), "CustomDate2")
+    assert not is_named_date(date(2015, 10, 25), "CustomDate2")

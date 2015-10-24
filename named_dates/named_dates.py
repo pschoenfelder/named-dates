@@ -5,7 +5,15 @@ from dateutil.easter import easter
 _named_dates = {}
 _named_date_groups = {}
 
-class NoNthWeekdayException(Exception):
+class NamedDateError(Exception):
+    pass
+
+
+class NoNthWeekdayError(NamedDateError):
+    pass
+
+
+class MissingArgumentsError(NamedDateError):
     pass
 
 
@@ -38,12 +46,13 @@ def day_of_nth_weekday(year, month, weekday, nth=1, from_end=False):
 
     day = reference_day + nth_offset + weekday - reference_weekday
     if nth < 1 or not (1 <= day <= days_in_month):
-        raise NoNthWeekdayException()
+        raise NoNthWeekdayError()
 
     return day
 
 
-def register_named_date(name, month, day, nth=None, from_end=False):
+def register_named_date(name, month=None, day=None,
+                        nth=None, from_end=False, custom_func=None):
     """Register a named date.
 
     :param name: The name of the date. Must be unique within all named dates.
@@ -54,17 +63,29 @@ def register_named_date(name, month, day, nth=None, from_end=False):
      of ``year``.
     :param from_end: Logical. If True, then ``nth`` looks backwards from the
      end of ``month``of ``year``.
+    :param custom_func: A user defined function for determining whether an
+     input date is a named date. If provided, all other arguments except name
+     are ignored. The function should take the form::
+        def my_func(date):
+            return True if date is the named date else False
     """
     global _named_dates
 
-    if nth:
-        def is_date(date):
-            nth_weekday = day_of_nth_weekday(date.year, date.month,
-                                             day, nth, from_end)
-            return date.month == month and date.day == nth_weekday
+    if not custom_func:
+        if not (month and day):
+            raise MissingArgumentsError(
+                "month and day, or custom_func, must be specified to " +
+                "register a date. ")
+        if nth:
+            def is_date(date):
+                nth_weekday = day_of_nth_weekday(date.year, date.month,
+                                                 day, nth, from_end)
+                return date.month == month and date.day == nth_weekday
+        else:
+            def is_date(date):
+                return date.month == month and date.day == day
     else:
-        def is_date(date):
-            return date.month == month and date.day == day
+        is_date = custom_func
 
     _named_dates[name] = is_date
 
