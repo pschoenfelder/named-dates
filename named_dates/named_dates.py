@@ -9,7 +9,7 @@ class NoNthWeekdayException(Exception):
     pass
 
 
-def day_of_nth_weekday(year, month, weekday, nth=1):
+def day_of_nth_weekday(year, month, weekday, nth=1, from_end=False):
     """Determine the day of the month on which the ``nth`` time that ``weekday``
      occurs in the ``month`` of ``year``.
 
@@ -18,23 +18,32 @@ def day_of_nth_weekday(year, month, weekday, nth=1):
     :param weekday: Integer representing the day of week (0-6, Monday through
      Sunday).
     :param nth: The number occurrence of ``weekday`` in ``month`` of ``year``.
+    :param from_end: If True, then ``nth`` looks backwards from the
+     end of ``month``of ``year``.
     :return: An integer day of the month.
     :raises NoNthWeekdayException: If no nth weekday exists for this month
      and year.
     """
-    first_of_month_weekday = datetime.date(year, month, 1).weekday()
+    days_in_month = calendar.monthrange(year, month)[1]
+    reference_day = 1 if not from_end else days_in_month
+    reference_weekday = datetime.date(year, month, reference_day).weekday()
+
     nth_offset = 7 * (nth-1)
-    if weekday < first_of_month_weekday:
+    if ((not from_end and weekday < reference_weekday) or
+            (from_end and weekday > reference_weekday)):
         nth_offset += 7
 
-    day = (weekday - first_of_month_weekday + 1) + nth_offset
-    if nth < 1 or day > calendar.monthrange(year, month)[1]:
+    if from_end:
+        nth_offset = -nth_offset
+
+    day = reference_day + nth_offset + weekday - reference_weekday
+    if nth < 1 or not (1 <= day <= days_in_month):
         raise NoNthWeekdayException()
 
     return day
 
 
-def register_named_date(name, month, day, nth=None):
+def register_named_date(name, month, day, nth=None, from_end=False):
     """Register a named date.
 
     :param name: The name of the date. Must be unique within all named dates.
@@ -43,12 +52,15 @@ def register_named_date(name, month, day, nth=None):
      Otherwise, represents a weekday (0-6, Monday-Sunday).
     :param nth: The number occurrence of ``day`` (as a weekday) in ``month``
      of ``year``.
+    :param from_end: Logical. If True, then ``nth`` looks backwards from the
+     end of ``month``of ``year``.
     """
     global _named_dates
 
     if nth:
         def is_date(date):
-            nth_weekday = day_of_nth_weekday(date.year, date.month, day, nth)
+            nth_weekday = day_of_nth_weekday(date.year, date.month,
+                                             day, nth, from_end)
             return date.month == month and date.day == nth_weekday
     else:
         def is_date(date):

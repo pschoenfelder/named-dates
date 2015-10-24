@@ -39,3 +39,24 @@ def test_weekday_less_than_first_of_month():
     assert day_of_nth_weekday(2015, 10, 1, nth=4) == 27
     with pytest.raises(NoNthWeekdayException):
         day_of_nth_weekday(2015, 10, 1, nth=5)
+
+
+def test_from_end():
+    # October 31 is a Saturday (day 5)
+    assert day_of_nth_weekday(2015, 10, 5, nth=1, from_end=True) == 31
+    assert day_of_nth_weekday(2015, 10, 5, nth=2, from_end=True) == 24
+    assert day_of_nth_weekday(2015, 10, 5, nth=5, from_end=True) == 3
+    with pytest.raises(NoNthWeekdayException):
+        assert day_of_nth_weekday(2015, 10, 5, nth=6, from_end=True)
+
+    assert day_of_nth_weekday(2015, 10, 3, nth=1, from_end=True) == 29
+    assert day_of_nth_weekday(2015, 10, 3, nth=2, from_end=True) == 22
+    assert day_of_nth_weekday(2015, 10, 3, nth=5, from_end=True) == 1
+    with pytest.raises(NoNthWeekdayException):
+        assert day_of_nth_weekday(2015, 10, 3, nth=6, from_end=True)
+
+    assert day_of_nth_weekday(2015, 10, 6, nth=1, from_end=True) == 25
+    assert day_of_nth_weekday(2015, 10, 6, nth=2, from_end=True) == 18
+    assert day_of_nth_weekday(2015, 10, 6, nth=4, from_end=True) == 4
+    with pytest.raises(NoNthWeekdayException):
+        assert day_of_nth_weekday(2015, 10, 6, nth=5, from_end=True)
