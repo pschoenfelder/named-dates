@@ -1,6 +1,5 @@
 import calendar
 import datetime
-from dateutil.easter import easter
 
 _named_dates = {}
 _named_date_groups = {}
@@ -100,7 +99,7 @@ def clear_named_dates():
     _named_dates.clear()
 
 
-def make_named_date_group(group, date_names=None):
+def make_named_date_set(group, date_names=None):
     """
 
     :param group: The group name
@@ -129,11 +128,5 @@ def in_named_date_set(date, group):
 # def get_named_dates_in_group(group):
 #     return _named_date_groups.get(group, [])
 
-def is_easter(date):
-    # Defaults to western Easter.
-    return date == easter(date.year)
-
-
-_named_dates["Easter Sunday"] = is_easter
 
 
