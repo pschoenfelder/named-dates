@@ -2,7 +2,8 @@ import pytest
 
 from datetime import date
 from named_dates import register_named_date, is_named_date
-from named_dates.named_dates import clear_named_dates
+from named_dates.named_dates import clear_named_dates,\
+    NamedDateKeyError, MissingArgumentsError
 
 
 def test_named_date_creation():
@@ -35,7 +36,8 @@ def test_named_dates_persist():
 
 def test_non_existing_named_date():
     clear_named_dates()  # Just to be sure nothing exists.
-    assert not is_named_date(date(2000, 1, 1), "NotANamedDate")
+    with pytest.raises(NamedDateKeyError):
+        is_named_date(date(2000, 1, 1), "NotANamedDate")
 
 
 def test_creation_via_custom_function():
@@ -55,3 +57,14 @@ def test_creation_via_custom_function():
     assert is_named_date(date(2015, 7, 25), "CustomDate2")
     assert is_named_date(date(1999, 7, 25), "CustomDate2")
     assert not is_named_date(date(2015, 10, 25), "CustomDate2")
+
+
+def test_missing_creation_specifications():
+    with pytest.raises(MissingArgumentsError):
+        register_named_date("Nope")
+
+    with pytest.raises(MissingArgumentsError):
+        register_named_date("Nope", 1)
+
+    with pytest.raises(MissingArgumentsError):
+        register_named_date("Nope", day=1)

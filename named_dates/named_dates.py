@@ -4,7 +4,7 @@ import datetime
 from dateutil.easter import easter
 
 _named_dates = {}
-_named_date_groups = {}
+_named_date_sets = {}
 
 
 class NamedDateError(Exception):
@@ -16,6 +16,14 @@ class NoNthWeekdayError(NamedDateError):
 
 
 class MissingArgumentsError(NamedDateError):
+    pass
+
+
+class NamedDateKeyError(NamedDateError):
+    pass
+
+
+class NamedDateSetKeyError(NamedDateError):
     pass
 
 
@@ -94,26 +102,48 @@ def register_named_date(name, month=None, day=None,
 
 def is_named_date(date, name):
     """Check if ``date`` is represented by ``name``."""
-    is_date_func = _named_dates.get(name, None)
-    return is_date_func(date) if is_date_func else False
+    try:
+        is_date_func = _named_dates[name]
+    except KeyError:
+        raise NamedDateKeyError(name)
+
+    return is_date_func(date)
 
 
 def clear_named_dates():
     _named_dates.clear()
 
 
-def make_named_date_set(group, date_names=None):
+def make_named_date_set(set_name, date_names):
+    """Create a set of named dates.
+
+    :param set_name: The group name.
+    :param date_names: A single string or set or list of named date
+     names to add.
     """
+    global _named_date_sets
 
-    :param group: The group name
-    :param date_names: A list of named date names to add
-    """
-    global _named_date_groups
-    _named_date_groups[group] = list(date_names) if date_names else []
+    date_names = set(date_names)
+
+    # Validate that each listed date exists.
+    try:
+        for name in date_names:
+            _ = _named_dates[name]
+    except KeyError:
+        raise NamedDateKeyError(
+            'Cannot make named date set from non-existing named date "' +
+            name + '".')
+
+    _named_date_sets[set_name] = date_names
 
 
-def in_named_date_set(date, group):
-    for date_name in _named_date_groups.get(group, []):
+def in_named_date_set(date, set_name):
+    try:
+        date_names = _named_date_sets[set_name]
+    except KeyError:
+        raise NamedDateSetKeyError(set_name)
+
+    for date_name in date_names:
         if _named_dates[date_name](date):
             return True
 
@@ -149,8 +179,6 @@ clean enough.
 #  Add alias option to provide acronym (e.g. MLK)?
 #    Do simple test to ensure dict entries point to same instance
 #    of is_date function.
-#  This made up my mind - should definitely error on bad names.
-#    The question is whether to wrap the KeyError or not.
 #  Allow entering days by name (e.g. "Monday")?
 # TODO: Half days for Thanksgiving and Christmas?
 
