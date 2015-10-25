@@ -149,16 +149,14 @@ def in_named_date_set(date, set_name):
 
     return False
 
-# def add_named_dates_to_group(named_dates, group):
-#     global _named_date_groups
-#     named_dates = list(named_dates)
-#
-#     named_dates.extend(_named_date_groups.get(group, []))
-#     _named_date_groups[group] = named_dates
 
+def get_named_dates_in_set(set_name):
+    try:
+        names = _named_date_sets[set_name]
+    except KeyError:
+        raise NamedDateSetKeyError(set_name)
 
-# def get_named_dates_in_group(group):
-#     return _named_date_groups.get(group, [])
+    return names
 
 
 """
@@ -170,17 +168,12 @@ Eventually this should be cleaned up when I feel the API is
 clean enough.
 """
 
-# TODO: How to key these dates?
-#  Allow everything before "Day", unless two matches?
-#  Allow partial matching?
-#  Seems error prone
-#  For base dates, set a few different keys, and any user defined
-#  keys are up to themselves to add aliases?
-#  Add alias option to provide acronym (e.g. MLK)?
-#    Do simple test to ensure dict entries point to same instance
+# TODO: Allow aliases
+# TODO: Add aliases to base dates
+# TODO: Do simple test to ensure dict entries point to same instance
 #    of is_date function.
-#  Allow entering days by name (e.g. "Monday")?
-# TODO: Half days for Thanksgiving and Christmas?
+# TODO: Allow entering days by name (e.g. "Monday")?
+# TODO: Decision on half days for Thanksgiving and Christmas?
 
 register_named_date("New Years Day", 1, 1)
 register_named_date("Martin Luther King Day", 1, 0, nth=3)
@@ -198,3 +191,14 @@ register_named_date("Independence Day", 7, 4)
 register_named_date("Labor Day", 9, 0, nth=1)
 register_named_date("Thanksgiving Day", 11, 3, nth=4)
 register_named_date("Christmas Day", 12, 25)
+
+make_named_date_set("NYSEHolidays", ["New Years Day",
+                                     "Martin Luther King Day",
+                                     "Washington's Birthday",
+                                     "President's Day",
+                                     "Good Friday",
+                                     "Memorial Day",
+                                     "Independence Day",
+                                     "Labor Day",
+                                     "Thanksgiving Day",
+                                     "Christmas Day"])
