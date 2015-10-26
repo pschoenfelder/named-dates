@@ -62,7 +62,8 @@ def day_of_nth_weekday(year, month, weekday, nth=1, from_end=False):
 
 
 def register_named_date(name, month=None, day=None,
-                        nth=None, from_end=False, custom_func=None):
+                        nth=None, from_end=False, custom_func=None,
+                        aliases=None):
     """Register a named date.
 
     :param name: The name of the date. Must be unique within all named dates.
@@ -78,6 +79,7 @@ def register_named_date(name, month=None, day=None,
      are ignored. The function should take the form::
         def my_func(date):
             return True if date is the named date else False
+    :param aliases: A list of alternative names this date can be referenced by
     """
     global _named_dates
 
@@ -96,6 +98,10 @@ def register_named_date(name, month=None, day=None,
                 return date.month == month and date.day == day
     else:
         is_date = custom_func
+
+    if aliases:
+        for alias in aliases:
+            _named_dates[alias] = is_date
 
     _named_dates[name] = is_date
 
@@ -129,10 +135,10 @@ def make_named_date_set(set_name, date_names):
     try:
         for name in date_names:
             _ = _named_dates[name]
-    except KeyError:
+    except KeyError as e:
         raise NamedDateKeyError(
             'Cannot make named date set from non-existing named date "' +
-            name + '".')
+            str(e) + '".')
 
     _named_date_sets[set_name] = date_names
 
@@ -158,27 +164,12 @@ def get_named_dates_in_set(set_name):
 
     return names
 
-
-"""
-TODO: This is more for trying out the API at the moment.
-I want to see how clean all this actually is to use, separate
-from the unit tests.
-
-Eventually this should be cleaned up when I feel the API is
-clean enough.
-"""
-
-# TODO: Allow aliases
-# TODO: Add aliases to base dates
-# TODO: Do simple test to ensure dict entries point to same instance
-#    of is_date function.
-# TODO: Allow entering days by name (e.g. "Monday")?
-# TODO: Decision on half days for Thanksgiving and Christmas?
-
-register_named_date("New Years Day", 1, 1)
-register_named_date("Martin Luther King Day", 1, 0, nth=3)
-register_named_date("Washington's Birthday", 2, 0, nth=3)
-register_named_date("President's Day", 2, 0, nth=3)
+# Base named dates that come with the import
+register_named_date("New Years Day", 1, 1, aliases=["New Years"])
+register_named_date("Martin Luther King, Jr. Day", 1, 0, nth=3,
+                    aliases=["Martin Luther King Jr. Day", "MLK Day"])
+register_named_date("Washington's Birthday", 2, 0, nth=3,
+                    aliases=["President's Day"])
 
 
 def is_good_friday(date):
@@ -189,11 +180,12 @@ register_named_date("Good Friday", custom_func=is_good_friday)
 register_named_date("Memorial Day", 5, 0, nth=1, from_end=True)
 register_named_date("Independence Day", 7, 4)
 register_named_date("Labor Day", 9, 0, nth=1)
-register_named_date("Thanksgiving Day", 11, 3, nth=4)
-register_named_date("Christmas Day", 12, 25)
+register_named_date("Thanksgiving Day", 11, 3, nth=4, aliases=["Thanksgiving"])
+register_named_date("Christmas Day", 12, 25, aliases=["Christmas"])
 
+# The extra half day holidays on Thanksgiving and Christmas are not included.
 make_named_date_set("NYSEHolidays", ["New Years Day",
-                                     "Martin Luther King Day",
+                                     "Martin Luther King, Jr. Day",
                                      "Washington's Birthday",
                                      "President's Day",
                                      "Good Friday",
