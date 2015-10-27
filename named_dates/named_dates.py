@@ -126,10 +126,6 @@ def is_named_date(date, name):
     return is_date_func(date)
 
 
-def clear_named_dates():
-    _named_dates.clear()
-
-
 def make_named_date_set(set_name, date_names):
     """Create a set of named dates.
 
@@ -173,6 +169,16 @@ def get_named_dates_in_set(set_name):
         raise NamedDateSetKeyError(set_name)
 
     return names
+
+
+def clear_named_dates():
+    # TODO: Global?
+    _named_dates.clear()
+
+
+def clear_named_date_sets():
+    # TODO: Global?
+    _named_date_sets.clear()
 
 # Base named dates that come with the import
 register_named_date("New Years Day", 1, 1, aliases=["New Years"])

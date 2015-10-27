@@ -4,6 +4,7 @@ from datetime import date
 from named_dates import register_named_date, make_named_date_set,\
     in_named_date_set, get_named_dates_in_set,\
     NamedDateKeyError, NamedDateSetKeyError
+from named_dates.named_dates import clear_named_date_sets
 
 
 def test_named_date_sets():
@@ -36,4 +37,11 @@ def test_existing_set_with_non_existing_named_date():
         make_named_date_set("MyNewSet",
                             ["Thanksgiving",
                              "NonExistingDate"])
+
+
+def test_clear_named_date_sets():
+    assert len(get_named_dates_in_set("NYSEHolidays")) > 0
+    clear_named_date_sets()
+    with pytest.raises(NamedDateSetKeyError):
+        get_named_dates_in_set("NYSEHolidays")
 
