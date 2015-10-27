@@ -7,6 +7,6 @@ install:
   - pip install pytest-cov
   - pip install -e .
 script:
-  py.test --cov named_dates
+  py.test --cov named_dates --cov-report term-missing
 after_success:
   coveralls

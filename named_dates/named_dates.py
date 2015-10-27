@@ -27,7 +27,7 @@ class NamedDateSetKeyError(NamedDateError):
     pass
 
 
-def day_of_nth_weekday(year, month, weekday, nth=1, from_end=False):
+def day_of_nth_weekday(year, month, weekday, **kwargs):
     """Determine the day of the month on which the ``nth`` time that ``weekday``
      occurs in the ``month`` of ``year``.
 
@@ -42,6 +42,11 @@ def day_of_nth_weekday(year, month, weekday, nth=1, from_end=False):
     :raises NoNthWeekdayException: If no nth weekday exists for this month
      and year.
     """
+    nth = kwargs.pop('nth', 1)
+    from_end = kwargs.pop('from_end', False)
+    if kwargs:
+        raise TypeError("Unexpected **kwargs: %r" % kwargs)
+
     days_in_month = calendar.monthrange(year, month)[1]
     reference_day = 1 if not from_end else days_in_month
     reference_weekday = datetime.date(year, month, reference_day).weekday()
@@ -61,9 +66,7 @@ def day_of_nth_weekday(year, month, weekday, nth=1, from_end=False):
     return day
 
 
-def register_named_date(name, month=None, day=None,
-                        nth=None, from_end=False, custom_func=None,
-                        aliases=None):
+def register_named_date(name, month=None, day=None, **kwargs):
     """Register a named date.
 
     :param name: The name of the date. Must be unique within all named dates.
@@ -83,6 +86,13 @@ def register_named_date(name, month=None, day=None,
     """
     global _named_dates
 
+    nth = kwargs.pop('nth', None)
+    from_end = kwargs.pop('from_end', None)
+    custom_func = kwargs.pop('custom_func', None)
+    aliases = kwargs.pop('aliases', None)
+    if kwargs:
+        raise TypeError("Unexpected **kwargs: %r" % kwargs)
+
     if not custom_func:
         if day is None or month is None:
             raise MissingArgumentsError(
@@ -90,8 +100,8 @@ def register_named_date(name, month=None, day=None,
                 "register a date. ")
         if nth:
             def is_date(date):
-                nth_weekday = day_of_nth_weekday(date.year, date.month,
-                                                 day, nth, from_end)
+                nth_weekday = day_of_nth_weekday(date.year, date.month, day,
+                                                 nth=nth, from_end=from_end)
                 return date.month == month and date.day == nth_weekday
         else:
             def is_date(date):

@@ -59,7 +59,7 @@ def test_creation_via_custom_function():
     assert not is_named_date(date(2015, 10, 25), "CustomDate2")
 
 
-def test_missing_creation_specifications():
+def test_bad_creation_specifications():
     with pytest.raises(MissingArgumentsError):
         register_named_date("Nope")
 
@@ -68,3 +68,6 @@ def test_missing_creation_specifications():
 
     with pytest.raises(MissingArgumentsError):
         register_named_date("Nope", day=1)
+
+    with pytest.raises(TypeError):
+        register_named_date("Nope", bad_kwarg=1)

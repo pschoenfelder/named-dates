@@ -60,3 +60,8 @@ def test_from_end():
     assert day_of_nth_weekday(2015, 10, 6, nth=4, from_end=True) == 4
     with pytest.raises(NoNthWeekdayError):
         assert day_of_nth_weekday(2015, 10, 6, nth=5, from_end=True)
+
+
+def test_bad_kwargs_disallowed():
+    with pytest.raises(TypeError):
+        day_of_nth_weekday(2015, 1, 1, bad_kwarg=1)
