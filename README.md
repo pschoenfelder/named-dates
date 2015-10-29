@@ -14,7 +14,7 @@ if is_named_date(my_date, "Thanksgiving"):
     print "TURKEY DAYYYYY"
 ```
 
-How about from the end of the month? Say, the last Monday in May?
+How about a date based on the end of the month? Say, the last Monday in May?
 ```
 register_named_date("Memorial Day", 5, 0, nth=1, from_end=True)
 ```
@@ -28,12 +28,15 @@ def is_good_friday(date):
 register_named_date("Good Friday", custom_func=is_good_friday)
 ```
 
-You can even group important dates together.
+You can even group important dates into sets, find out which dates are in a set, and find out whether a date is in a set.
 ```
 make_named_date_set("MyFavoriteHolidays", ["Thanksgiving",
                                            "Christmas",
                                            "New Years"])
+get_named_dates_in_set("MyFavoriteHolidays")
+# ["Thanksgiving", "Christmas", "New Years"]
+
 if in_named_date_set(date(2015, 12, 25), "MyFavoriteHolidays"):
-    print "You betcha"
+    print "Oct 31"
 ```
 
