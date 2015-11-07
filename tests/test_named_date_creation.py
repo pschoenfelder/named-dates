@@ -1,14 +1,11 @@
 import pytest
 
 from datetime import date
-from named_dates import register_named_date, is_named_date
-from named_dates.named_dates import clear_named_dates,\
-    NamedDateKeyError, MissingArgumentsError
+from named_dates import NamedDate
 
 
 def test_named_date_creation():
-    register_named_date("MyDate", 11, 3, nth=4)
-    assert is_named_date(date(2015, 11, 26), "MyDate")
+    my_date = NamedDate("MyDate", 11, 3, nth=4)
     assert is_named_date(date(2016, 11, 24), "MyDate")
     assert is_named_date(date(2017, 11, 23), "MyDate")
     assert not is_named_date(date(2014, 11, 26), "MyDate")
