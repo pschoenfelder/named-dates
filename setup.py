@@ -8,4 +8,4 @@ setup(name='named-dates',
       author_email='TODO',  # TODO
       license='MIT',
       packages=['named_dates'],
-      requires=['dateutil', 'pytest'])
+      requires=['pytest'])
