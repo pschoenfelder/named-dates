@@ -2,7 +2,7 @@ import pytest
 
 from datetime import date
 import named_dates
-from named_dates import NamedDate, NamedDates
+from named_dates import NamedDate, NamedDates, NamedDatesKeyError
 
 
 def test_NamedDates():
@@ -13,28 +13,41 @@ def test_NamedDates():
     my_dates.add(NamedDate("Martin Luther King, Jr. Day", 1, 0, nth=3,
                            aliases=["Martin Luther King Jr. Day", "MLK Day"]))
 
-    assert my_date.observes(date(2015, 1, 19))
+    assert my_dates.observes(date(2015, 1, 19))
     assert my_dates.observes(date(2015, 1, 1))
     assert my_dates.observes(date(2005, 1, 1))
 
     presidents_day = date(2015, 2, 16)
     assert not my_dates.observes(presidents_day)
-    with pytest.raises(named_dates.NamedDateKeyError):
+    with pytest.raises(named_dates.NamedDatesKeyError):
         my_dates["Washington's Birthday"]
 
     my_dates.add(NamedDate("Washington's Birthday", 2, 0, nth=3,
                            aliases=["President's Day"]))
     assert my_dates.observes(presidents_day)
 
-    assert my_dates["Washington's Birthday"]  # Should no longer error
-    assert my_dates["President's Day"]
+    assert my_dates["Washington's Birthday"]
+    assert my_dates["President's Day"].falls_on(presidents_day)
 
-    assert set(my_dates.names) == set(["MyDate",
-                                      "Washington's Birthday",
-                                      "President's Day",
-                                      "Martin Luther King, Jr. Day",
-                                      "Martin Luther King Jr. Day",
-                                      "MLK Day"])
+    assert set(my_dates.names) == {"MyDate",
+                                   "Washington's Birthday",
+                                   "President's Day",
+                                   "Martin Luther King, Jr. Day",
+                                   "Martin Luther King Jr. Day",
+                                   "MLK Day"}
+
+
+def test_NamedDatesErrors():
+    my_date = NamedDate("MyDate", 1, 1)
+    with pytest.raises(NamedDatesKeyError):
+        NamedDates([my_date, my_date])
+
+    my_dates = NamedDates([my_date])
+    with pytest.raises(NamedDatesKeyError):
+        my_dates.add(my_date)
+
+    with pytest.raises(NamedDatesKeyError):
+        my_dates["uhoh"]
 
 # def test_NamedDate():
 #     mlk = NamedDate("Martin Luther King, Jr. Day", 1, 0, nth=3,

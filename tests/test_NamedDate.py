@@ -10,7 +10,7 @@ def test_hard_NamedDate():
     hard_date = NamedDate("SpecialDate", 9, 25)
     assert hard_date.falls_on(date(1937, 9, 25))
     assert hard_date.falls_on(date(2014, 9, 25))
-    assert not hard_date.falls_on(date(2014, 12, 17)
+    assert not hard_date.falls_on(date(2014, 12, 17))
 
 
 def test_soft_NamedDate():

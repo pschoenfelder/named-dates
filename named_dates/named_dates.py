@@ -1,11 +1,6 @@
 import calendar
 import datetime
 
-from dateutil.easter import easter
-
-_named_dates = {}
-_named_date_sets = {}
-
 
 class NamedDateError(Exception):
     pass
@@ -19,11 +14,7 @@ class MissingArgumentsError(NamedDateError):
     pass
 
 
-class NamedDateKeyError(NamedDateError):
-    pass
-
-
-class NamedDateSetKeyError(NamedDateError):
+class NamedDatesKeyError(NamedDateError):
     pass
 
 
@@ -66,137 +57,88 @@ def day_of_nth_weekday(year, month, weekday, **kwargs):
     return day
 
 
-def register_named_date(name, month=None, day=None, **kwargs):
-    """Register a named date.
+class NamedDate(object):
+    """An object that encapsulates the logic of dates often referenced by name
+    instead of date because the date on which it falls usually varies from
+    year to year."""
 
-    :param name: The name of the date. Must be unique within all named dates.
-    :param month: Month.
-    :param day: If nth is None, represents a specific day in ``month``.
-     Otherwise, represents a weekday (0-6, Monday-Sunday).
-    :param nth: The number occurrence of ``day`` (as a weekday) in ``month``
-     of ``year``.
-    :param from_end: Logical. If True, then ``nth`` looks backwards from the
-     end of ``month``of ``year``.
-    :param custom_func: A user defined function for determining whether an
-     input date is a named date. If provided, all other arguments except name
-     are ignored. The function should take the form::
-        def my_func(date):
-            return True if date is the named date else False
-    :param aliases: A list of alternative names this date can be referenced by
-    """
-    global _named_dates
+    def __init__(self, name, month=None, day=None, **kwargs):
+        """
+        :param name: The name of the date. Must be unique within all named dates.
+        :param month: Month.
+        :param day: If nth is None, represents a specific day in ``month``.
+         Otherwise, represents a weekday (0-6, Monday-Sunday).
+        :param nth: The number occurrence of ``day`` (as a weekday) in ``month``
+         of ``year``.
+        :param from_end: Logical. If True, then ``nth`` looks backwards from the
+         end of ``month``of ``year``.
+        :param custom_func: A user defined function for determining whether an
+         input date is a named date. If provided, all other arguments except name
+         are ignored. The function should take the form::
+            def my_func(date):
+                return True if date is the named date else False
+        :param aliases: A list of alternative names this date can be referenced by
+        """
+        nth = kwargs.pop('nth', None)
+        from_end = kwargs.pop('from_end', False)
+        custom_func = kwargs.pop('custom_func', None)
+        aliases = kwargs.pop('aliases', [])
+        if kwargs:
+            raise TypeError("Unexpected **kwargs: %r" % kwargs)
 
-    nth = kwargs.pop('nth', None)
-    from_end = kwargs.pop('from_end', False)
-    custom_func = kwargs.pop('custom_func', None)
-    aliases = kwargs.pop('aliases', [])
-    if kwargs:
-        raise TypeError("Unexpected **kwargs: %r" % kwargs)
-
-    if not custom_func:
-        if (not month) or (day is None):  # Beware, day == 0 is valid
-            raise MissingArgumentsError(
-                "month and day, or custom_func, must be specified to " +
-                "register a date. ")
-        if nth:
-            def is_date(date):
-                nth_weekday = day_of_nth_weekday(date.year, date.month, day,
-                                                 nth=nth, from_end=from_end)
-                return date.month == month and date.day == nth_weekday
+        if not custom_func:
+            if (not month) or (day is None):  # Beware, day == 0 is valid
+                raise MissingArgumentsError(
+                    "month and day, or custom_func, must be specified to " +
+                    "register a date. ")
+            if nth:
+                def is_date(date):
+                    nth_weekday = day_of_nth_weekday(date.year, date.month, day,
+                                                     nth=nth, from_end=from_end)
+                    return date.month == month and date.day == nth_weekday
+            else:
+                def is_date(date):
+                    return date.month == month and date.day == day
         else:
-            def is_date(date):
-                return date.month == month and date.day == day
-    else:
-        is_date = custom_func
+            is_date = custom_func
 
-    for alias in aliases:
-        _named_dates[alias] = is_date
+        self.__is_date = is_date
+        self._names = [name] + list(aliases)
 
-    _named_dates[name] = is_date
+    def falls_on(self, date):
+        """Does this named date occur on ``date``?"""
+        return self.__is_date(date)
 
-
-def is_named_date(date, name):
-    """Check if ``date`` is represented by ``name``."""
-    try:
-        is_date_func = _named_dates[name]
-    except KeyError:
-        raise NamedDateKeyError(name)
-
-    return is_date_func(date)
+    @property
+    def names(self):
+        return self._names
 
 
-def make_named_date_set(set_name, date_names):
-    """Create a set of named dates.
+class NamedDates(object):
+    """An object to represent a set of NamedDates."""
+    def __init__(self, named_dates=[]):
+        self.__named_dates = {}
+        for named_date in named_dates:
+            for name in named_date.names:
+                if self.__named_dates.get(name) is not None:
+                    raise NamedDatesKeyError("Conflicting duplicate name '%s' found." % name)
+                self.__named_dates[name] = named_date
 
-    :param set_name: The group name.
-    :param date_names: A single string or set or list of named date
-     names to add.
-    """
-    global _named_date_sets
+    def __getitem__(self, name):
+        try:
+            return self.__named_dates[name]
+        except KeyError:
+            raise NamedDatesKeyError(name)
 
-    date_names = set(date_names)
+    def add(self, named_date):
+        for name in named_date.names:
+            if self.__named_dates.get(name) is not None:
+                raise NamedDatesKeyError("Conflicting duplicate name '%s' found." % name)
+            self.__named_dates[name] = named_date
 
-    missing_dates = date_names - set(_named_dates.keys())
-    if missing_dates:
-        raise NamedDateKeyError(
-            'Cannot make named date set from non-existing named date "' +
-            str(missing_dates) + '".')
+    def observes(self, date):
+        return any([nd.falls_on(date) for nd in self.__named_dates.values()])
 
-    _named_date_sets[set_name] = date_names
-
-
-def in_named_date_set(date, set_name):
-    try:
-        date_names = _named_date_sets[set_name]
-    except KeyError:
-        raise NamedDateSetKeyError(set_name)
-
-    return any(_named_dates[name](date) for name in date_names)
-
-
-def get_named_dates_in_set(set_name):
-    try:
-        return _named_date_sets[set_name]
-    except KeyError:
-        raise NamedDateSetKeyError(set_name)
-
-
-def clear_named_dates():
-    # TODO: Global?
-    _named_dates.clear()
-
-
-def clear_named_date_sets():
-    # TODO: Global?
-    _named_date_sets.clear()
-
-# Base named dates that come with the import
-register_named_date("New Years Day", 1, 1, aliases=["New Years"])
-register_named_date("Martin Luther King, Jr. Day", 1, 0, nth=3,
-                    aliases=["Martin Luther King Jr. Day", "MLK Day"])
-register_named_date("Washington's Birthday", 2, 0, nth=3,
-                    aliases=["President's Day"])
-
-
-def is_good_friday(date):
-    # Defaults to western Easter.
-    return date == easter(date.year) - datetime.timedelta(days=2)
-
-register_named_date("Good Friday", custom_func=is_good_friday)
-register_named_date("Memorial Day", 5, 0, nth=1, from_end=True)
-register_named_date("Independence Day", 7, 4)
-register_named_date("Labor Day", 9, 0, nth=1)
-register_named_date("Thanksgiving Day", 11, 3, nth=4, aliases=["Thanksgiving"])
-register_named_date("Christmas Day", 12, 25, aliases=["Christmas"])
-
-# The extra half day holidays on Thanksgiving and Christmas are not included.
-make_named_date_set("NYSEHolidays", ["New Years Day",
-                                     "Martin Luther King, Jr. Day",
-                                     "Washington's Birthday",
-                                     "President's Day",
-                                     "Good Friday",
-                                     "Memorial Day",
-                                     "Independence Day",
-                                     "Labor Day",
-                                     "Thanksgiving Day",
-                                     "Christmas Day"])
+    @property
+    def names(self):
+        return self.__named_dates.keys()
