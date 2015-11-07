@@ -42,7 +42,7 @@ def day_of_nth_weekday(year, month, weekday, **kwargs):
     reference_day = 1 if not from_end else days_in_month
     reference_weekday = datetime.date(year, month, reference_day).weekday()
 
-    nth_offset = 7 * (nth-1)
+    nth_offset = 7 * (nth - 1)
     if ((not from_end and weekday < reference_weekday) or
             (from_end and weekday > reference_weekday)):
         nth_offset += 7
@@ -73,8 +73,8 @@ class NamedDate(object):
         :param from_end: Logical. If True, then ``nth`` looks backwards from the
          end of ``month``of ``year``.
         :param custom_func: A user defined function for determining whether an
-         input date is a named date. If provided, all other arguments except name
-         are ignored. The function should take the form::
+         input date is a named date. If provided, all other arguments except
+         name are ignored. The function should take the form::
             def my_func(date):
                 return True if date is the named date else False
         :param aliases: A list of alternative names this date can be referenced by
@@ -116,14 +116,17 @@ class NamedDate(object):
 
 class NamedDates(object):
     """An object to represent a set of NamedDates."""
+
     def __init__(self, named_dates=None):
         if not named_dates:
             named_dates = []
+
         self.__named_dates = {}
         for named_date in named_dates:
             for name in named_date.names:
                 if self.__named_dates.get(name) is not None:
-                    raise NamedDatesKeyError("Conflicting duplicate name '%s' found." % name)
+                    raise NamedDatesKeyError(
+                        "Conflicting duplicate name '%s' found." % name)
                 self.__named_dates[name] = named_date
 
     def __getitem__(self, name):
@@ -135,7 +138,8 @@ class NamedDates(object):
     def add(self, named_date):
         for name in named_date.names:
             if self.__named_dates.get(name) is not None:
-                raise NamedDatesKeyError("Conflicting duplicate name '%s' found." % name)
+                raise NamedDatesKeyError(
+                    "Conflicting duplicate name '%s' found." % name)
             self.__named_dates[name] = named_date
 
     def observes(self, date):
