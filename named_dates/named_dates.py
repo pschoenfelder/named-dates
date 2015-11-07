@@ -116,7 +116,9 @@ class NamedDate(object):
 
 class NamedDates(object):
     """An object to represent a set of NamedDates."""
-    def __init__(self, named_dates=[]):
+    def __init__(self, named_dates=None):
+        if not named_dates:
+            named_dates = []
         self.__named_dates = {}
         for named_date in named_dates:
             for name in named_date.names:

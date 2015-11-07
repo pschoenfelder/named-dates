@@ -6,16 +6,16 @@ import named_dates
 from named_dates import NamedDate
 
 
-def test_hard_NamedDate():
+def test_hard_creation():
     hard_date = NamedDate("SpecialDate", 9, 25)
     assert hard_date.falls_on(date(1937, 9, 25))
     assert hard_date.falls_on(date(2014, 9, 25))
     assert not hard_date.falls_on(date(2014, 12, 17))
 
 
-def test_soft_NamedDate():
+def test_soft_creation():
     soft_date = NamedDate("MyDate", 11, 3, nth=4, aliases=['MyDate2'])
-    assert set(soft_date.names) == set(["MyDate", "MyDate2"])
+    assert set(soft_date.names) == {"MyDate", "MyDate2"}
     assert soft_date.falls_on(date(2015, 11, 26))
     assert soft_date.falls_on(date(2016, 11, 24))
     assert soft_date.falls_on(date(2017, 11, 23))
@@ -24,14 +24,14 @@ def test_soft_NamedDate():
     assert not soft_date.falls_on(date(2015, 11, 27))
 
 
-def test_soft_from_end_NamedDate():
+def test_soft_from_end():
     my_date = NamedDate("Memorial Day", 5, 0, nth=1, from_end=True)
     assert my_date.falls_on(date(2015, 5, 25))
     assert my_date.falls_on(date(2016, 5, 30))
     assert my_date.falls_on(date(1971, 5, 31))
 
 
-def test_custom_function_NamedDate():
+def test_custom_function():
     my_date = NamedDate("MyDate", custom_func=lambda x: x.day == 25)
     assert my_date.falls_on(date(2015, 10, 25))
     assert my_date.falls_on(date(1999, 12, 25))

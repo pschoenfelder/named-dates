@@ -64,5 +64,4 @@ def test_from_end():
 
 def test_bad_kwargs_disallowed():
     with pytest.raises(TypeError):
-        day_of_nth_weekday(2015, 1, 1, bad_kwarg=1
-                           )
+        day_of_nth_weekday(2015, 1, 1, bad_kwarg=1)
