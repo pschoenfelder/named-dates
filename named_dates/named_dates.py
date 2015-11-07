@@ -84,6 +84,12 @@ def register_named_date(name, month=None, day=None, **kwargs):
             return True if date is the named date else False
     :param aliases: A list of alternative names this date can be referenced by
     """
+    """
+        I don't like the use of global. I would recommend refactoring to use
+        a class. This would allow you to have multiple named_dates objects
+        in the same application. All that really needs to change is all
+        of these become methods.
+    """
     global _named_dates
 
     nth = kwargs.pop('nth', None)
@@ -94,11 +100,12 @@ def register_named_date(name, month=None, day=None, **kwargs):
         raise TypeError("Unexpected **kwargs: %r" % kwargs)
 
     if not custom_func:
-        if day is None or month is None:
+        if not (day and month):
             raise MissingArgumentsError(
                 "month and day, or custom_func, must be specified to " +
                 "register a date. ")
         if nth:
+            # Like this use of local functions
             def is_date(date):
                 nth_weekday = day_of_nth_weekday(date.year, date.month, day,
                                                  nth=nth, from_end=from_end)
@@ -109,9 +116,8 @@ def register_named_date(name, month=None, day=None, **kwargs):
     else:
         is_date = custom_func
 
-    if aliases:
-        for alias in aliases:
-            _named_dates[alias] = is_date
+    for alias in aliases:
+        _named_dates[alias] = is_date
 
     _named_dates[name] = is_date
 
@@ -134,17 +140,15 @@ def make_named_date_set(set_name, date_names):
      names to add.
     """
     global _named_date_sets
-
+    
     date_names = set(date_names)
 
-    # Validate that each listed date exists.
-    try:
-        for name in date_names:
-            _ = _named_dates[name]
-    except KeyError as e:
+    # Set operators!
+    missing_dates = set(date_names) - set(_named_dates.keys())
+    if missing_dates:
         raise NamedDateKeyError(
-            'Cannot make named date set from non-existing named date "' +
-            str(e) + '".')
+                'Cannot make named date set from non-existing named date "' +
+                str(missing_dates) + '".')
 
     _named_date_sets[set_name] = date_names
 
@@ -155,20 +159,15 @@ def in_named_date_set(date, set_name):
     except KeyError:
         raise NamedDateSetKeyError(set_name)
 
-    for date_name in date_names:
-        if _named_dates[date_name](date):
-            return True
-
-    return False
+    # I'm a huge fan of iteration predicates, so take this with a grain of salt
+    return any(lambda date_name: _named_dates[date_name](date), date_names)
 
 
 def get_named_dates_in_set(set_name):
     try:
-        names = _named_date_sets[set_name]
+        return _named_date_sets[set_name]
     except KeyError:
         raise NamedDateSetKeyError(set_name)
-
-    return names
 
 
 def clear_named_dates():
