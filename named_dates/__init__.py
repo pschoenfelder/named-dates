@@ -1,3 +1,4 @@
 from .named_dates import NamedDate, NamedDates,\
-    NamedDateError, NamedDatesKeyError, MissingArgumentsError, NoNthWeekdayError
+    NamedDateError, DateLogicError, NamedDatesKeyError, MissingArgumentsError,\
+    NoNthWeekdayError
 

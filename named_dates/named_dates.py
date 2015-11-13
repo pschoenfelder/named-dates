@@ -6,6 +6,9 @@ class NamedDateError(Exception):
     pass
 
 
+class DateLogicError(Exception):
+    pass
+
 class NoNthWeekdayError(NamedDateError):
     pass
 
@@ -72,6 +75,9 @@ class NamedDate(object):
          of ``year``.
         :param from_end: Logical. If True, then ``nth`` looks backwards from the
          end of ``month``of ``year``.
+        :param or_nearest_weekend: Logical. If True and the date falls on a
+         weekend, then this date will be considered to fall on the nearest
+         weekday. May not be used with ``nth`` option.
         :param custom_func: A user defined function for determining whether an
          input date is a named date. If provided, all other arguments except
          name are ignored. The function should take the form::
@@ -81,6 +87,7 @@ class NamedDate(object):
         """
         nth = kwargs.pop('nth', None)
         from_end = kwargs.pop('from_end', False)
+        or_nearest_weekday = kwargs.pop('or_nearest_weekday', False)
         custom_func = kwargs.pop('custom_func', None)
         aliases = kwargs.pop('aliases', [])
         if kwargs:
@@ -92,10 +99,32 @@ class NamedDate(object):
                     "month and day, or custom_func, must be specified to " +
                     "register a date. ")
             if nth:
+                if or_nearest_weekday:
+                    raise DateLogicError("Cannot use nth day and nearest " +
+                                         "weekday behavior together.")
+
                 def is_date(date):
                     nth_weekday = day_of_nth_weekday(date.year, date.month, day,
                                                      nth=nth, from_end=from_end)
                     return date.month == month and date.day == nth_weekday
+
+            elif or_nearest_weekday:
+                def is_date(date):
+                    if date.month == month and date.day == day:
+                        return True
+
+                    # Even if date doesn't match, if it's a Friday or Monday,
+                    # then it may be the weekday nearest to date.
+                    one_day = datetime.timedelta(days=1)
+                    if date.weekday() == 0:
+                        weekday_date = date - one_day
+                    elif date.weekday() == 4:
+                        weekday_date = date + one_day
+                    else:
+                        return False
+
+                    return weekday_date.month == month and weekday_date.day == day
+
             else:
                 def is_date(date):
                     return date.month == month and date.day == day
