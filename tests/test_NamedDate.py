@@ -13,14 +13,23 @@ def test_hard_creation():
     assert not hard_date.falls_on(date(2014, 12, 17))
 
 
-def test_hard_disallow_weekends():
+def test_hard_nearest_weekday_saturday():
     hard_date = NamedDate("MyDate", 7, 4, or_nearest_weekday=True)
-    assert date(2009, 7, 4).weekday() == 5  # TODO : remove me
     assert hard_date.falls_on(date(2009, 7, 4))
     assert hard_date.falls_on(date(2009, 7, 3))
     assert not hard_date.falls_on(date(2009, 7, 2))
     assert not hard_date.falls_on(date(2009, 7, 5))
 
+
+def test_hard_nearest_weekday_sunday():
+    hard_date = NamedDate("MyDate", 7, 5, or_nearest_weekday=True)
+    assert hard_date.falls_on(date(2009, 7, 5))
+    assert hard_date.falls_on(date(2009, 7, 6))
+    assert not hard_date.falls_on(date(2009, 7, 4))
+    assert not hard_date.falls_on(date(2009, 7, 7))
+
+
+def test_nearest_weekday_bad_creation_logic():
     with pytest.raises(named_dates.DateLogicError):
         NamedDate("MyDate", 7, 4, nth=1, or_nearest_weekday=True)
 
