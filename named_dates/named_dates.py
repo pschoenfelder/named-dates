@@ -9,6 +9,7 @@ class NamedDateError(Exception):
 class DateLogicError(Exception):
     pass
 
+
 class NoNthWeekdayError(NamedDateError):
     pass
 
@@ -60,6 +61,42 @@ def day_of_nth_weekday(year, month, weekday, **kwargs):
     return day
 
 
+def make_falls_on_nth_weekday(month, day, nth, from_end):
+    def falls_on(date):
+        nth_weekday = day_of_nth_weekday(date.year, date.month, day,
+                                         nth=nth, from_end=from_end)
+        return date.month == month and date.day == nth_weekday
+
+    return falls_on
+
+
+def make_falls_on_nearest_weekday(month, day):
+    def falls_on(date):
+        if date.month == month and date.day == day:
+            return True
+
+        # Even if date doesn't match, if it's a Friday or Monday,
+        # then it may be the weekday nearest to the actual date.
+        one_day = datetime.timedelta(days=1)
+        if date.weekday() == 0:
+            weekday_date = date - one_day
+        elif date.weekday() == 4:
+            weekday_date = date + one_day
+        else:
+            return False
+
+        return weekday_date.month == month and weekday_date.day == day
+
+    return falls_on
+
+
+def make_falls_on(month, day):
+    def falls_on(date):
+        return date.month == month and date.day == day
+
+    return falls_on
+
+
 class NamedDate(object):
     """An object that encapsulates the logic of dates often referenced by name
     instead of date because the date on which it falls usually varies from
@@ -75,14 +112,14 @@ class NamedDate(object):
          of ``year``.
         :param from_end: Logical. If True, then ``nth`` looks backwards from the
          end of ``month``of ``year``.
-        :param or_nearest_weekend: Logical. If True and the date falls on a
+        :param or_nearest_weekday: Logical. If True and the date falls on a
          weekend, then this date will be considered to fall on the nearest
          weekday. May not be used with ``nth`` option.
-        :param custom_func: A user defined function for determining whether an
-         input date is a named date. If provided, all other arguments except
-         name are ignored. The function should take the form::
-            def my_func(date):
-                return True if date is the named date else False
+        :param custom_func: A user defined function for determining whether a
+         falls on an input date argument. If provided, all other arguments except
+         ``name`` are ignored. The function should take the form:
+              def my_func(date):
+                  return True if date is the named date else False
         :param aliases: A list of alternative names this date can be referenced by
         """
         nth = kwargs.pop('nth', None)
@@ -93,50 +130,36 @@ class NamedDate(object):
         if kwargs:
             raise TypeError("Unexpected **kwargs: %r" % kwargs)
 
-        if not custom_func:
-            if (not month) or (day is None):  # Beware, day == 0 is valid
-                raise MissingArgumentsError(
-                    "month and day, or custom_func, must be specified to " +
-                    "register a date. ")
-            if nth:
-                if or_nearest_weekday:
-                    raise DateLogicError("Cannot use nth day and nearest " +
-                                         "weekday behavior together.")
-
-                def is_date(date):
-                    nth_weekday = day_of_nth_weekday(date.year, date.month, day,
-                                                     nth=nth, from_end=from_end)
-                    return date.month == month and date.day == nth_weekday
-
-            elif or_nearest_weekday:
-                def is_date(date):
-                    if date.month == month and date.day == day:
-                        return True
-
-                    # Even if date doesn't match, if it's a Friday or Monday,
-                    # then it may be the weekday nearest to date.
-                    one_day = datetime.timedelta(days=1)
-                    if date.weekday() == 0:
-                        weekday_date = date - one_day
-                    elif date.weekday() == 4:
-                        weekday_date = date + one_day
-                    else:
-                        return False
-
-                    return weekday_date.month == month and weekday_date.day == day
-
-            else:
-                def is_date(date):
-                    return date.month == month and date.day == day
-        else:
-            is_date = custom_func
-
-        self.__is_date = is_date
         self._names = [name] + list(aliases)
+
+        # User defined 'falls on' functions cut out early.
+        if custom_func:
+            self.__falls_on = custom_func
+            return
+
+        # Otherwise, build the 'falls on' logic from the construction parameters.
+        if (not month) or (day is None):  # Beware, day == 0 is valid
+            raise MissingArgumentsError(
+                "month and day, or custom_func, must be specified to " +
+                "register a date. ")
+
+        if nth and or_nearest_weekday:
+            raise DateLogicError(
+                "Cannot use nth day and nearest weekday behaviors together.")
+
+        # If this grows, it may be worth refactoring to some creational pattern.
+        if nth:
+            falls_on_func = make_falls_on_nth_weekday(month, day, nth, from_end)
+        elif or_nearest_weekday:
+            falls_on_func = make_falls_on_nearest_weekday(month, day)
+        else:
+            falls_on_func = make_falls_on(month, day)
+
+        self.__falls_on = falls_on_func
 
     def falls_on(self, date):
         """Does this named date occur on ``date``?"""
-        return self.__is_date(date)
+        return self.__falls_on(date)
 
     @property
     def names(self):
