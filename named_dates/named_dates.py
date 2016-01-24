@@ -188,6 +188,9 @@ class NamedDates(object):
         except KeyError:
             raise NamedDatesKeyError(name)
 
+    def __len__(self):
+        return len(self.__named_dates)
+    
     def add(self, named_date):
         for name in named_date.names:
             if self.__named_dates.get(name) is not None:

@@ -8,9 +8,13 @@ def test_NamedDates():
     my_date = NamedDate("MyDate", 1, 1)
 
     my_dates = NamedDates()
+    assert len(my_dates) == 0
+
     my_dates.add(my_date)
+    assert len(my_dates) == 1
     my_dates.add(NamedDate("Martin Luther King, Jr. Day", 1, 0, nth=3,
                            aliases=["Martin Luther King Jr. Day", "MLK Day"]))
+    assert len(my_dates) == 4
 
     assert my_dates.observes(date(2015, 1, 19))
     assert my_dates.observes(date(2015, 1, 1))
